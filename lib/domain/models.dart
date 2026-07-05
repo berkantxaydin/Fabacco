@@ -18,6 +18,42 @@ class Promo {
   });
 }
 
+class MassageType {
+  final String name;
+  final String benefits;
+
+  MassageType({required this.name, required this.benefits});
+}
+
+// Global stats tracker for the Admin Panel
+class AdminStats {
+  final int totalMassagesUsed;
+  final int totalHamamUsed;
+  final int totalPromoClicks;
+  final List<String> alerts; // Holds notifications like "User running low!"
+
+  AdminStats({
+    this.totalMassagesUsed = 0,
+    this.totalHamamUsed = 0,
+    this.totalPromoClicks = 0,
+    this.alerts = const [],
+  });
+
+  AdminStats copyWith({
+    int? totalMassagesUsed,
+    int? totalHamamUsed,
+    int? totalPromoClicks,
+    List<String>? alerts,
+  }) {
+    return AdminStats(
+      totalMassagesUsed: totalMassagesUsed ?? this.totalMassagesUsed,
+      totalHamamUsed: totalHamamUsed ?? this.totalHamamUsed,
+      totalPromoClicks: totalPromoClicks ?? this.totalPromoClicks,
+      alerts: alerts ?? this.alerts,
+    );
+  }
+}
+
 enum UserRole { admin, user }
 
 class AccountInfo {

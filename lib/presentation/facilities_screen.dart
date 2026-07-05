@@ -6,7 +6,9 @@ import '../core/logger_service.dart';
 
 class FacilitiesScreen extends ConsumerWidget {
   const FacilitiesScreen({super.key});
-  final List<String> _locations = const ['Cevahir', 'Kavacik', 'Izmir'];
+
+  // FIXED: Proper Turkish characters for locations
+  final List<String> _locations = const ['Cevahir', 'Kavacık', 'İzmir'];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +32,7 @@ class FacilitiesScreen extends ConsumerWidget {
           child: DropdownButtonFormField<String>(
             value: selectedLocation,
             decoration: InputDecoration(
-              labelText: 'Select Branch Location',
+              labelText: 'Select Spa Location', // More premium wording
               labelStyle: TextStyle(color: theme.colorScheme.primary),
               filled: true,
               fillColor: theme.scaffoldBackgroundColor,
@@ -65,7 +67,14 @@ class FacilitiesScreen extends ConsumerWidget {
             error: (err, stack) => Center(child: Text('Error: $err')),
             data: (categories) {
               return ListView.builder(
-                padding: const EdgeInsets.only(top: 8, bottom: 24),
+                // --- RESPONSIVE FIX IS HERE ---
+                // We dynamically calculate the device's bottom safe area (for iOS)
+                // and add 100 pixels to perfectly clear the Glass Bottom Nav Bar.
+                padding: EdgeInsets.only(
+                  top: 8,
+                  bottom: 100 + MediaQuery.of(context).padding.bottom,
+                ),
+                // ------------------------------
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
@@ -77,9 +86,8 @@ class FacilitiesScreen extends ConsumerWidget {
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
                             fontSize: 16)),
-                    leading: Icon(Icons.folder_open,
+                    leading: Icon(Icons.spa_outlined,
                         color: theme.colorScheme.secondary),
-                    // We map through the items to show the new large image cards
                     children: category.items
                         .map((item) => _buildFacilityCard(item, theme, ref))
                         .toList(),
@@ -99,41 +107,41 @@ class FacilitiesScreen extends ConsumerWidget {
       elevation: 3,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      clipBehavior:
-          Clip.antiAlias, // Ensures the image respects the rounded corners
+      clipBehavior: Clip.antiAlias,
       color: Colors.white,
       child: InkWell(
         onTap: () {
           ref
               .read(loggerProvider)
-              .log('Viewed Facility: ${item.title}', level: LogLevel.info);
+              .log('Viewed: ${item.title}', level: LogLevel.info);
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Large Image Header
-            SizedBox(
-              height: 160,
-              child: Image.asset(
-                item.imageAsset,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: theme.scaffoldBackgroundColor,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.image_not_supported,
-                          size: 40, color: Colors.grey.shade400),
-                      const SizedBox(height: 8),
-                      Text(item.imageAsset,
-                          style: TextStyle(
-                              color: Colors.grey.shade500, fontSize: 12))
-                    ],
+            // Only show the image box if an imageAsset is provided
+            if (item.imageAsset.isNotEmpty)
+              SizedBox(
+                height: 160,
+                child: Image.asset(
+                  item.imageAsset,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: theme.scaffoldBackgroundColor,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.image_not_supported,
+                            size: 40, color: Colors.grey.shade400),
+                        const SizedBox(height: 8),
+                        Text(item.imageAsset,
+                            style: TextStyle(
+                                color: Colors.grey.shade500, fontSize: 12))
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            // Text & Staff Details
+
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -151,11 +159,11 @@ class FacilitiesScreen extends ConsumerWidget {
                           fontSize: 14,
                           height: 1.4)),
 
-                  // Staff Section (Only shows if there are staff, e.g., the Workers category)
+                  // Render the Staff / Team Members if the list is not empty
                   if (item.staff.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Divider(color: Colors.grey.shade200, height: 1),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Text('Team Members:',
                         style: TextStyle(
                             fontSize: 13,
@@ -169,6 +177,7 @@ class FacilitiesScreen extends ConsumerWidget {
                           .map((person) => Chip(
                                 side: BorderSide.none,
                                 backgroundColor: theme.scaffoldBackgroundColor,
+                                // Uses the first letter of their name for the avatar
                                 avatar: CircleAvatar(
                                     backgroundColor: theme.colorScheme.primary,
                                     child: Text(person.name[0],
